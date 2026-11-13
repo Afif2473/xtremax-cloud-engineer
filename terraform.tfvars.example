@@ -1,0 +1,48 @@
+aws_region   = "ap-southeast-1"
+project_name = "yakin-bisa-lolos"
+environment  = "prod"
+
+# Networking
+
+vpc_cidr                 = "10.0.0.0/16"
+azs                      = ["ap-southeast-1a", "ap-southeast-1b"]
+public_subnet_cidrs      = ["10.0.1.0/24", "10.0.2.0/24"]
+private_app_subnet_cidrs = ["10.0.11.0/24", "10.0.12.0/24"]
+private_db_subnet_cidrs  = ["10.0.21.0/24", "10.0.22.0/24"]
+
+# IAM
+ssm_db_param_arn = "arn:aws:ssm:ap-southeast-1:123456789012:parameter/yakin-bisa-lolos/prod/*"
+log_group_arn    = "arn:aws:logs:ap-southeast-1:123456789012:log-group:/aws/ec2/yakin-bisa-lolos-prod:*"
+
+# RDS MySQL (replace credentials locally in terraform.tfvars)
+db_name                 = "wordpress"
+db_username             = "REPLACE_WITH_DB_USERNAME"
+db_password             = "REPLACE_WITH_STRONG_PASSWORD"
+engine_version          = "8.0"
+db_instance_class       = "db.t3.micro"
+allocated_storage       = 20
+multi_az                = true
+backup_retention_period = 7
+skip_final_snapshot     = true
+deletion_protection     = false
+
+# ALB & EC2 Auto Scaling
+
+wordpress_ami_id         = "ami-0123456789abcdef0"
+wp_config_path           = "/var/www/html/wp-config.php" # Bitnami AMI uses /opt/bitnami/wordpress/wp-config.php
+instance_type            = "t3.small"
+alb_acm_certificate_arn  = "arn:aws:acm:ap-southeast-1:123456789012:certificate/00000000-0000-0000-0000-000000000000"
+alb_ssl_policy           = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+asg_min_size             = 1
+asg_max_size             = 4
+asg_desired_capacity     = 2
+scale_up_cpu_threshold   = 80
+scale_down_cpu_threshold = 40
+alarm_period             = 300
+alarm_evaluation_periods = 6
+
+# CloudFront
+
+cf_acm_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/00000000-0000-0000-0000-000000000000"
+cf_aliases             = ["www.yakinbisalolos.sch.id"]
+price_class            = "PriceClass_200"
