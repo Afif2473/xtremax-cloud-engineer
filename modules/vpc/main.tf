@@ -122,6 +122,7 @@ resource "aws_route_table_association" "private_db" {
 # Network ACLs
 
 # 1. Public NACL
+
 resource "aws_network_acl" "public" {
   vpc_id     = aws_vpc.this.id
   subnet_ids = aws_subnet.public[*].id
@@ -189,7 +190,9 @@ resource "aws_network_acl_rule" "public_out_ephemeral" {
   from_port      = 1024
   to_port        = 65535
 }
+
 # 2. Private App NACL
+
 resource "aws_network_acl" "private_app" {
   vpc_id     = aws_vpc.this.id
   subnet_ids = aws_subnet.private_app[*].id
@@ -260,7 +263,9 @@ resource "aws_network_acl_rule" "app_out_ephemeral_to_public" {
   from_port      = 1024
   to_port        = 65535
 }
+
 # 3. Private DB NACL (Strictly allows MySQL 3306 from Private App Subnets only)
+
 resource "aws_network_acl" "private_db" {
   vpc_id     = aws_vpc.this.id
   subnet_ids = aws_subnet.private_db[*].id
@@ -294,6 +299,7 @@ resource "aws_network_acl_rule" "db_out_ephemeral_to_app" {
 # Security Groups
 
 # 1. ALB Security Group
+
 resource "aws_security_group" "alb" {
   name        = "${local.name_prefix}-alb-sg"
   description = "Allow HTTP/HTTPS inbound to ALB and HTTP outbound to EC2"
@@ -326,7 +332,9 @@ resource "aws_vpc_security_group_egress_rule" "alb_to_ec2" {
   ip_protocol                  = "tcp"
   to_port                      = 80
 }
+
 # 2. EC2 WordPress Security Group
+
 resource "aws_security_group" "ec2" {
   name        = "${local.name_prefix}-ec2-sg"
   description = "Allow HTTP from ALB only; allow outbound to RDS and HTTPS updates"
@@ -367,7 +375,9 @@ resource "aws_vpc_security_group_egress_rule" "ec2_http_out" {
   ip_protocol       = "tcp"
   to_port           = 80
 }
+
 # 3. RDS MySQL Security Group
+
 resource "aws_security_group" "rds" {
   name        = "${local.name_prefix}-rds-sg"
   description = "Allow MySQL 3306 exclusively from WordPress EC2 instances"
