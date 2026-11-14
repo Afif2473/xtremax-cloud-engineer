@@ -23,19 +23,21 @@ resource "aws_internet_gateway" "this" {
 }
 
 resource "aws_eip" "nat" {
+  count  = length(var.azs)
   domain = "vpc"
 
   tags = {
-    Name = "${local.name_prefix}-nat-eip"
+    Name = "${local.name_prefix}-nat-eip-${var.azs[count.index]}"
   }
 }
 
 resource "aws_nat_gateway" "this" {
-  allocation_id = aws_eip.nat.id
-  subnet_id     = aws_subnet.public[0].id
+  count         = length(var.azs)
+  allocation_id = aws_eip.nat[count.index].id
+  subnet_id     = aws_subnet.public[count.index].id
 
   tags = {
-    Name = "${local.name_prefix}-nat-gw"
+    Name = "${local.name_prefix}-nat-gw-${var.azs[count.index]}"
   }
 
   depends_on = [aws_internet_gateway.this]
@@ -98,19 +100,22 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 resource "aws_route_table" "private_app" {
+  count  = length(var.azs)
   vpc_id = aws_vpc.this.id
+
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.this.id
+    nat_gateway_id = aws_nat_gateway.this[count.index].id
   }
   tags = {
-    Name = "${local.name_prefix}-private-app-rt"
+    Name = "${local.name_prefix}-private-app-rt-${var.azs[count.index]}"
   }
 }
+
 resource "aws_route_table_association" "private_app" {
   count          = length(aws_subnet.private_app)
   subnet_id      = aws_subnet.private_app[count.index].id
-  route_table_id = aws_route_table.private_app.id
+  route_table_id = aws_route_table.private_app[count.index].id
 }
 
 # Isolated DB Route Table: local VPC routing only
